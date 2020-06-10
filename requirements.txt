@@ -69,7 +69,7 @@ serpent==1.28
 setproctitle==1.1.10
 simplegeneric==0.8.1
 six==1.10.0
-smmap2==2.0.3
+smmap2
 tensorboard==1.0.0a6
 tensorboard-logger==0.0.4
 terminado==0.6
