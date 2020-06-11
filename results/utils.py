@@ -4,7 +4,7 @@ import numpy as np
 from numpy import genfromtxt
 from os import listdir
 
-dir_path = "/Users/Haddock/Desktop/alldata/"
+dir_path = "./alldata/"
 
 
 dataset2label = {
