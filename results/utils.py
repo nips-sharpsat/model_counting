@@ -4,37 +4,61 @@ import numpy as np
 from numpy import genfromtxt
 from os import listdir
 
-dir_path = "./alldata/"
+dir_path = "/Users/Haddock/Desktop/alldata/"
 
 
-dataset2label = {"cell9_20_20":  "Cell(9,20,20)",
+dataset2label = {
+                "sudoku_9_25": "Sudoku(9,25)",
+                "sudoku_16_105": "Sudoku(16,105)",
 
-                 "cell35_128_110": "Cell(35,128,110)",
-                 "cell35_192_128": "Cell(35,192,128)",
-                 "cell35_256_210": "Cell(35,256,210)",
-                 "cell35_348_280": "Cell(35,348,280)",
+                "cell9_20_20":  "Cell(9,20,20)",
+                "cell9_40_40":  "Cell(9,40,40)",
 
-                 "cell49_128_110": "Cell(49,128,110)",
+                "cell35_128_110": "Cell(35,128,110)",
+                "cell35_192_128": "Cell(35,192,128)",
+                "cell35_256_210": "Cell(35,256,210)",
+                "cell35_348_280": "Cell(35,348,280)",
 
-                 "grid_10_9":  "GridWrld(10,10)",
-                 "grid_10_12": "GridWrld(10,12)",
-                 "grid_10_14": "GridWrld(10,14)",
-                 "grid_12_14": "GridWrld(12,14)"}
+                "cell49_128_110": "Cell(49,128,110)",
+                "cell49_192_128": "Cell(49,192,128)",
+                "cell49_256_200": "Cell(49,256,200)",
+
+                "grid_10_5":  "GridWrld(10,5)",
+                "grid_10_9":  "GridWrld(10,10)",
+                "grid_10_12": "GridWrld(10,12)",
+                "grid_10_14": "GridWrld(10,14)",
+                "grid_12_14": "GridWrld(12,14)",
+
+                "bvexpr_5_4_8": "bv\\_exrp(5,4,8)",
+                "bvexpr_7_4_12": "bv\\_expr(7,4,12)"}
 
 def policy2label(policy, ablation=False):
     ret = {"vanilla": "SharpSAT",
             "struct": "Learned", #"Graph",
             "timestruct": "Graph+Time",
             "timedecode": "Learned", #"Graph+Time+Activity",
-            "time_activity": "Time+Activity",
+            "time_activity": "Time+VarScore",
             "timeonly": "Time",
             "random": "Random"}
 
     if (ablation):
         ret["struct"] = "Graph"
-        ret["timedecode"] = "Graph+Time+Activity"
+        ret["timedecode"] = "Graph+Time+VarScore"
 
     return ret[policy]
+
+def get_dataset_len(dataset, policies):
+    lens = {}
+    for policy in policies:
+        ds_dir = f"{policy}_{dataset}"
+        full_ds_path = os.path.join(dir_path, ds_dir)
+
+        files = [os.path.join(full_ds_path, f) for f in os.listdir(full_ds_path)]
+
+        lens[policy] = len(files)
+
+    return lens
+
 
 def get_seq_lens(dataset, policies, wall_clock=False):
     max_seq_len = 0
@@ -72,13 +96,10 @@ def get_seq_lens(dataset, policies, wall_clock=False):
             max_seq_len = max(max_seq_len, len(sequence))
             seq_lens[policy] += [len(sequence)]
 
-            units = new_dict["units"]
-            max_units_len = max(max_units_len, len(units))
-
             if(wall_clock):
                 wall_clocks[policy] += [new_dict["time"]]
 
-        print(f"Sequence length for {dataset2label[dataset]}-{policy2label(policy)} (max/avg): {max_seq_len:.1f}/{np.mean(seq_lens[policy]):.1f}")
+        print(f"Sequence length for {dataset2label[dataset]}-{policy2label(policy)} (max/avg/cnt): {max_seq_len:.1f}/{np.mean(seq_lens[policy]):.1f}/{len(files)}")
 
     if (wall_clock):
         return {"steps": seq_lens, "times": wall_clocks}
