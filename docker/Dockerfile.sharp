@@ -1,0 +1,57 @@
+FROM ubuntu:18.04
+
+ENV LANG en_US.UTF-8
+
+RUN apt-get update
+# RUN apt-get install -y libicu55
+RUN apt-get install -y libcurl3-gnutls
+RUN apt-get install -y apt-utils
+RUN apt-get install -y vim; apt-get install -y less
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository -y ppa:deadsnakes/ppa
+RUN apt-get update
+RUN apt-get install -y python3.7; apt-get install -y python3-pip
+RUN apt-get install -y git
+RUN apt-get install -y openmpi-bin
+RUN apt-get install -y openmpi-common
+RUN apt-get install -y libopenmpi-dev
+RUN apt-get install -y zlib1g-dev
+RUN apt-get install -y language-pack-en
+RUN apt-get install -y libreadline-dev
+RUN pip3 install --upgrade pip
+RUN pip3 install setuptools
+RUN ln -s /usr/bin/python3.6 /usr/bin/python
+RUN ln -s /usr/bin/ipython3 /usr/bin/ipython
+# add credentials on build
+ARG SSH_PRIVATE_KEY
+RUN mkdir /root/.ssh/
+RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/id_rsa
+RUN chmod 600 /root/.ssh/id_rsa
+# make sure domain is accepted
+RUN touch /root/.ssh/known_hosts
+RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
+
+
+ADD ./image /app
+#ADD ./aiger-1.9.9/ /aiger
+#ADD ./abc /abc
+WORKDIR /app
+#RUN pip install torch==1.3.0+cpu torchvision==0.4.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip install -r requirements_local.txt
+RUN pip install python-sat
+RUN patch /usr/local/lib/python3.6/dist-packages/sacred/observers/mongo.py < sacred_mongo.patch
+#WORKDIR /aiger
+#RUN ./configure.sh && make
+#RUN cp aigand aigdd aigflip aigfuzz aiginfo aigjoin aigmiter aigmove aignm aigor aigreset aigsim aigsplit aigstrip aigtoaig aigtoblif aigtocnf aigtodot aigtosmv aigunconstraint aigunroll andtoaig bliftoaig smvtoaig soltostim wrapstim /usr/local/bin/
+#WORKDIR /abc
+#RUN make
+#RUN cp abc /usr/local/bin/
+
+# RUN git clone git@github.com:CpHaddock/sat-rl.git
+# WORKDIR /app/sat-rl/pysat-master
+# RUN ./rebuild.sh
+#RUN mkdir /code
+#VOLUME /code
+#WORKDIR /code
+# ENTRYPOINT ["/app/rebuild_sat.sh"]
+CMD []
